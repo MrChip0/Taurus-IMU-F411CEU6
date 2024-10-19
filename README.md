@@ -5,6 +5,7 @@
     本程序使用的动态分配的数组较多，默认堆栈大小不够用，需要在Stm32CubeMX里增大堆栈大小。
     使用FlASH的时候，尽量不用DMA的串口。
     需要根据以上数据设置，如果程序能成功运行，但是下载后覆盖了用户数据，设置Keil下载模式。如果程序能成功运行，但是数据为0，CubeMX增加堆栈大小，检查是否用了DMA的串口。
+    上传前运行keilkill.bat清除中间文件
   # 设置步骤：
       1，Keil - 魔法棒 - Target - IROM1，设置起始地址Start：0x8000000，SIZE：0x60000（384K）
       2，Keil - 魔法棒 - Debug - Settings - FLash Download，设置下载模式为“Erase Sector”，Address Range起始地址Start：0x8000000，SIZE：0x00060000（384K）
