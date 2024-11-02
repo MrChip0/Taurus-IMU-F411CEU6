@@ -52,6 +52,7 @@ void IMU_AHRS_Calcu(void) ;
 void IMU_AHRS_Calcu_task(void);
 void BodyFrameToEarthFrame(const float *vecBF, float *vecEF, float *q);
 void EarthFrameToBodyFrame(const float *vecEF, float *vecBF, float *q);
+
 #endif
 
 

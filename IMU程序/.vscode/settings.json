@@ -71,7 +71,8 @@
     "main.h": "c",
     "pid.h": "c",
     "imu_ahrsupdate.h": "c",
-    "calibration.h": "c"
-},
+    "calibration.h": "c",
+    "quaternionekf.h": "c"
+  },
   "C_Cpp.errorSquiggles": "disabled"
 }

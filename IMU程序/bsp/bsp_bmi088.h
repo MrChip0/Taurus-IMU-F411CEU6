@@ -46,6 +46,8 @@ typedef struct
 	float pitch;
 	float yaw;					//欧拉角
 	float init_tempture;
+
+    
 }IMU_FLOAT_DATA_T;
 
 extern IMU_INT16_DATA_T imu_org_data;				//原始数据

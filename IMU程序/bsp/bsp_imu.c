@@ -220,62 +220,26 @@ float dt = 0, t = 0;
 uint8_t ins_debug_mode = 0;
 float RefTemp = 40;
 
+
+
+
 void IMU_AHRS_Calcu_task(void)
 {
-
+    // const float gravity[3] = {0, 0, 9.7833f};
     dt = DWT_GetDeltaT(&INS_DWT_Count);
     t += dt;
     INS.AccelLPF = 0.0085;
-
     INS.Accel[X_axis] = imu_real_data.Accel.X;
     INS.Accel[Y_axis] = imu_real_data.Accel.Y;
     INS.Accel[Z_axis] = imu_real_data.Accel.Z;
     INS.Gyro[X_axis] = imu_real_data.Gyro.X;
     INS.Gyro[Y_axis] = imu_real_data.Gyro.Y;
     INS.Gyro[Z_axis] = imu_real_data.Gyro.Z;
-
-    // demo function,用于修正安装误差,可以不管,本demo暂时没用
-    // IMU_Param_Correction(&IMU_Param, INS.Gyro, INS.Accel);
-
-    // 计算重力加速度矢量和b系的XY两轴的夹角,可用作功能扩展,本demo暂时没用
-    INS.atanxz = -atan2f(INS.Accel[X_axis], INS.Accel[Z_axis]) * 180 / PI;
-    INS.atanyz = atan2f(INS.Accel[Y_axis], INS.Accel[Z_axis]) * 180 / PI;
-    // Uart2Printf("%7f,%7f\n", INS.atanxz,INS.atanyz);
-
     // 扩展卡尔曼核心函数
     IMU_QuaternionEKF_Update_Chip(INS.Gyro[X_axis], INS.Gyro[Y_axis], INS.Gyro[Z_axis], INS.Accel[X_axis], INS.Accel[Y_axis], INS.Accel[Z_axis], dt);
-
-    //     memcpy(INS.q, QEKF_INS.q, sizeof(QEKF_INS.q));
-
-    //     // 机体系基向量转换到导航坐标系，本例选取惯性系为导航系
-    //     BodyFrameToEarthFrame(xb, INS.xn, INS.q);
-    //     BodyFrameToEarthFrame(yb, INS.yn, INS.q);
-    //     BodyFrameToEarthFrame(zb, INS.zn, INS.q);
-
-    //             // 将重力从导航坐标系n转换到机体系b,随后根据加速度计数据计算运动加速度
-    //    float gravity_b[3];
-    //    EarthFrameToBodyFrame(gravity, gravity_b, INS.q);
-    //    for (uint8_t i = 0; i < 3; i++) // 同样过一个低通滤波
-    //    {
-    //        INS.MotionAccel_b[i] = INS.Accel[i];
-    //    }
-    //    BodyFrameToEarthFrame(INS.MotionAccel_b, INS.MotionAccel_n, INS.q); // 转换回导航系n
-
-    //     EarthFrameToBodyFrame(gravity, gravity_b, INS.q);
-    //     for (uint8_t i = 0; i < 3; i++) // 同样过一个低通滤波
-    //     {
-    //         INS.MotionAccel_b[i] = (INS.Accel[i] - gravity_b[i]) * dt / (INS.AccelLPF + dt) + INS.MotionAccel_b[i] * INS.AccelLPF / (INS.AccelLPF + dt);
-    //     }
-    // 			BodyFrameToEarthFrame(INS.MotionAccel_b, INS.MotionAccel_n, INS.q); // 转换回导航系n
-    // 获取最终数据
-    INS.Yaw = QEKF_INS.Yaw;
-    INS.Pitch = QEKF_INS.Pitch;
-    INS.Roll = QEKF_INS.Roll;
-    INS.YawTotalAngle = QEKF_INS.YawTotalAngle;
-    // //赋值给输出接口
-    imu_real_data.yaw = INS.Yaw;
-    imu_real_data.pitch = INS.Pitch; // pitch
-    imu_real_data.roll = INS.Roll;
+    imu_real_data.yaw = QEKF_INS.Yaw;
+    imu_real_data.pitch = QEKF_INS.Pitch;
+    imu_real_data.roll = QEKF_INS.Roll;
 }
 
 /**

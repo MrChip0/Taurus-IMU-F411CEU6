@@ -75,7 +75,7 @@ void Uart2Printf(const char *format, ...)
 }
 
 #define PRINTF_BUFFER_SIZE 256
-#define Print_Fre 20
+#define Print_Fre 0
 char dma_printf_buffer[PRINTF_BUFFER_SIZE];
 volatile uint8_t dma_busy = 0;
 

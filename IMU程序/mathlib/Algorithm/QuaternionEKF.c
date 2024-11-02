@@ -239,21 +239,23 @@ void IMU_QuaternionEKF_Update_Chip(float gx, float gy, float gz, float ax, float
 {
 
     if (!QEKF_INS.Initialized)
-        IMU_QuaternionEKF_Init(10, 0.001f, 10000000.0f, 0.9996f * 0.0f + 1.0f, 0.0f);
+        IMU_QuaternionEKF_Init(10, 0.001f, 10000000.0f, 1.0f, 0.0f);
+        // IMU_QuaternionEKF_Init(10, 0.001f, 10000000.0f, 0.1, 0.0f);
+        // IMU_QuaternionEKF_Init(10.0f, 0.1f, 80000000.0f, 0.9998f, 0.1f);
+        // IMU_QuaternionEKF_Init(20.0f, 0.01f, 20000000.0f, 0.9992f, 0.15f);
+
+
+
 
     QEKF_INS.dt = dt;
 
-   
     float corrected_gx = gx - QEKF_INS.GyroBias[0];
     float corrected_gy = gy - QEKF_INS.GyroBias[1];
     float corrected_gz = gz - QEKF_INS.GyroBias[2];
 
-   
     float halfgxdt = 0.5f * corrected_gx * dt;
     float halfgydt = 0.5f * corrected_gy * dt;
     float halfgzdt = 0.5f * corrected_gz * dt;
-  
-    memcpy(QEKF_INS.IMU_QuaternionEKF.F_data, IMU_QuaternionEKF_F, sizeof(IMU_QuaternionEKF_F));
 
     QEKF_INS.IMU_QuaternionEKF.F_data[1]  = -halfgxdt;
     QEKF_INS.IMU_QuaternionEKF.F_data[2]  = -halfgydt;
@@ -268,23 +270,12 @@ void IMU_QuaternionEKF_Update_Chip(float gx, float gy, float gz, float ax, float
     QEKF_INS.IMU_QuaternionEKF.F_data[19] = halfgydt;
     QEKF_INS.IMU_QuaternionEKF.F_data[20] = -halfgxdt;
 
-    if (QEKF_INS.UpdateCount == 0) 
-    {
-        QEKF_INS.Accel[0] = ax;
-        QEKF_INS.Accel[1] = ay;
-        QEKF_INS.Accel[2] = az;
-    }
-    else
-    {
-        float alpha = QEKF_INS.accLPFcoef / (QEKF_INS.dt + QEKF_INS.accLPFcoef);
-        QEKF_INS.Accel[0] = QEKF_INS.Accel[0] * alpha + ax * (1.0f - alpha);
-        QEKF_INS.Accel[1] = QEKF_INS.Accel[1] * alpha + ay * (1.0f - alpha);
-        QEKF_INS.Accel[2] = QEKF_INS.Accel[2] * alpha + az * (1.0f - alpha);
-    }
+    float alpha = QEKF_INS.accLPFcoef / (dt + QEKF_INS.accLPFcoef);
+    QEKF_INS.Accel[0] = (QEKF_INS.UpdateCount == 0) ? ax : QEKF_INS.Accel[0] * alpha + ax * (1.0f - alpha);
+    QEKF_INS.Accel[1] = (QEKF_INS.UpdateCount == 0) ? ay : QEKF_INS.Accel[1] * alpha + ay * (1.0f - alpha);
+    QEKF_INS.Accel[2] = (QEKF_INS.UpdateCount == 0) ? az : QEKF_INS.Accel[2] * alpha + az * (1.0f - alpha);
 
-    float accel_sq = QEKF_INS.Accel[0] * QEKF_INS.Accel[0] +
-                     QEKF_INS.Accel[1] * QEKF_INS.Accel[1] +
-                     QEKF_INS.Accel[2] * QEKF_INS.Accel[2];
+    float accel_sq = QEKF_INS.Accel[0] * QEKF_INS.Accel[0] + QEKF_INS.Accel[1] * QEKF_INS.Accel[1] + QEKF_INS.Accel[2] * QEKF_INS.Accel[2];
     float accelInvNorm = invSqrt(accel_sq);
 
     QEKF_INS.IMU_QuaternionEKF.MeasuredVector[0] = QEKF_INS.Accel[0] * accelInvNorm;
@@ -292,19 +283,17 @@ void IMU_QuaternionEKF_Update_Chip(float gx, float gy, float gz, float ax, float
     QEKF_INS.IMU_QuaternionEKF.MeasuredVector[2] = QEKF_INS.Accel[2] * accelInvNorm;
 
     float gyro_sq = corrected_gx * corrected_gx + corrected_gy * corrected_gy + corrected_gz * corrected_gz;
-    QEKF_INS.gyro_norm  = 1.0f / invSqrt(gyro_sq);
-    QEKF_INS.accl_norm  = accelInvNorm;
+    QEKF_INS.gyro_norm = invSqrt(gyro_sq);
+    QEKF_INS.accl_norm = accelInvNorm;
 
-    QEKF_INS.StableFlag = (QEKF_INS.gyro_norm < 0.3f) &&
-                          (QEKF_INS.accl_norm > 9.3f) &&
-                          (QEKF_INS.accl_norm < 10.3f) ? 1 : 0;
+    QEKF_INS.StableFlag = (QEKF_INS.gyro_norm < 0.3f) && (QEKF_INS.accl_norm > 9.3f && QEKF_INS.accl_norm < 10.3f) ? 1 : 0;
 
     float dt_Q1 = QEKF_INS.Q1 * dt;
     float dt_Q2 = QEKF_INS.Q2 * dt;
     float R_val = QEKF_INS.R;
 
-    QEKF_INS.IMU_QuaternionEKF.Q_data[0]  = dt_Q1;
-    QEKF_INS.IMU_QuaternionEKF.Q_data[7]  = dt_Q1;
+    QEKF_INS.IMU_QuaternionEKF.Q_data[0] = dt_Q1;
+    QEKF_INS.IMU_QuaternionEKF.Q_data[7] = dt_Q1;
     QEKF_INS.IMU_QuaternionEKF.Q_data[14] = dt_Q1;
     QEKF_INS.IMU_QuaternionEKF.Q_data[21] = dt_Q1;
     QEKF_INS.IMU_QuaternionEKF.Q_data[28] = dt_Q2;
@@ -323,32 +312,16 @@ void IMU_QuaternionEKF_Update_Chip(float gx, float gy, float gz, float ax, float
     QEKF_INS.GyroBias[0] = filtered[4];
     QEKF_INS.GyroBias[1] = filtered[5];
     QEKF_INS.GyroBias[2] = 0.0f;
-
-
      Q0 = QEKF_INS.q[0];
      Q1 = QEKF_INS.q[1];
      Q2 = QEKF_INS.q[2];
      Q3 = QEKF_INS.q[3];
-
     const float RAD_TO_DEG = 57.295779513f;
     QEKF_INS.Yaw = atan2f(2.0f * (Q0 * Q3 + Q1 * Q2),
                          1.0f - 2.0f * (Q2 * Q2 + Q3 * Q3)) * RAD_TO_DEG;
     QEKF_INS.Pitch = atan2f(2.0f * (Q0 * Q1 + Q2 * Q3),
                            1.0f - 2.0f * (Q1 * Q1 + Q2 * Q2)) * RAD_TO_DEG;
     QEKF_INS.Roll = asinf(-2.0f * (Q1 * Q3 - Q0 * Q2)) * RAD_TO_DEG;
-
-    float delta_yaw = QEKF_INS.Yaw - QEKF_INS.YawAngleLast;
-    if (delta_yaw > 180.0f)
-    {
-        QEKF_INS.YawRoundCount--;
-    }
-    else if (delta_yaw < -180.0f)
-    {
-        QEKF_INS.YawRoundCount++;
-    }
-    QEKF_INS.YawTotalAngle = 360.0f * QEKF_INS.YawRoundCount + QEKF_INS.Yaw;
-    QEKF_INS.YawAngleLast = QEKF_INS.Yaw;
-    QEKF_INS.UpdateCount++;
 }
 
 

@@ -50,8 +50,8 @@ void Flash_Write_Float1(uint32_t address,float floatDataToWrite)
     HAL_FLASH_Lock();
 }
 
-#define GYRO_SAMPLES 20000
-#define REMOVE_COUNT 100
+#define GYRO_SAMPLES 50000
+#define REMOVE_COUNT 1
 
 void InsertMin(float *min_values, float value) {
     for(int i = REMOVE_COUNT - 1; i >=0; i--) {

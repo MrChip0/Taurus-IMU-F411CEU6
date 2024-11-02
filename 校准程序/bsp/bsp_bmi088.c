@@ -38,8 +38,8 @@ init:
         {
             {GYRO_RANGE, 0x00}, // 量程2000°/s
             //	{GYRO_BANDWIDTH,		0x01}, //设置数据更新频率2000HZ；内部低通滤波器230HZ
-            // {GYRO_BANDWIDTH, 0x02}, // 设置数据更新频率1000HZ；内部低通滤波器116HZ
-            {GYRO_BANDWIDTH,		0x03}, //设置数据更新频率400HZ；内部低通滤波器47
+            {GYRO_BANDWIDTH, 0x03}, // 设置数据更新频率1000HZ；内部低通滤波器116HZ
+            // {GYRO_BANDWIDTH,		0x07}, //设置数据更新频率400HZ；内部低通滤波器47
             {GYRO_INT_CTRL, 0x00}, // 不开启数据更新中断
             //{GYRO_INT_CTRL,			0x08}, //开启数据更新中断
             {INT3_INT4_IO_MAP, 0x00}, // 数据中断引脚无映射
@@ -48,9 +48,8 @@ init:
         {
             //{ACC_CONF,					0x9c}, //设置数据输出速率1600HZ
             //{ACC_CONF,					0x87}, //设置数据输出速率800HZ
-            // {ACC_CONF, 0xA7}, // 设置ODR=1.6kHz、连续采样模式、“正常模式”(norm_avg4)
-
-            {ACC_CONF, 0xAA}, // 设置ODR=1.6kHz、连续采样模式、“正常模式”(norm_avg4)
+            {ACC_CONF, 0xA7}, // 设置ODR=1.6kHz、连续采样模式、“正常模式”(norm_avg4)
+            // {ACC_CONF, 0xAA}, // 设置ODR=1.6kHz、连续采样模式、“正常模式”(norm_avg4)
             		// {ACC_RANGE,					0x03}, //设置量程为+-3g；低通滤波器234HZ
             {ACC_RANGE, 0x00}, // 设置量程为+-3g；低通滤波器234HZ
 
